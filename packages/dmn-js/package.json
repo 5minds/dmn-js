@@ -60,10 +60,10 @@
     "rollup-plugin-license": "^3.4.0"
   },
   "dependencies": {
-    "dmn-js-boxed-expression": "^16.5.0",
-    "dmn-js-decision-table": "^16.5.0",
-    "dmn-js-drd": "^16.5.0",
-    "dmn-js-literal-expression": "^16.5.0",
-    "dmn-js-shared": "^16.5.0"
+    "dmn-js-boxed-expression": "../dmn-js-boxed-expression",
+    "dmn-js-decision-table": "../dmn-js-decision-table",
+    "dmn-js-drd": "../dmn-js-drd",
+    "dmn-js-literal-expression": "../dmn-js-literal-expression",
+    "dmn-js-shared": "../dmn-js-shared"
   }
 }

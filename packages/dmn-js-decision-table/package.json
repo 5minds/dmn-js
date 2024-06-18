@@ -33,7 +33,7 @@
     "@bpmn-io/dmn-variable-resolver": "^0.7.0",
     "css.escape": "^1.5.1",
     "diagram-js": "^14.7.1",
-    "dmn-js-shared": "^16.5.0",
+    "dmn-js-shared": "../dmn-js-shared",
     "escape-html": "^1.0.3",
     "inferno": "~5.6.2",
     "min-dash": "^4.0.0",
