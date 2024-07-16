@@ -96,6 +96,10 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
     'create.business-knowledge-model': createAction(
       'dmn:BusinessKnowledgeModel', 'drd', 'dmn-icon-business-knowledge',
       translate('Create knowledge model')
+    ),
+    'create.decision-service': createAction(
+      'dmn:Decision', 'drd', 'dmn-icon-decision',
+      translate('Create decision service')
     )
   });
 

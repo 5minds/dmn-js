@@ -65,7 +65,8 @@ PaletteProvider.prototype.getPaletteEntries = function (element) {
     'create.decision': createAction('dmn:Decision', 'drd', 'dmn-icon-decision', translate('Create decision')),
     'create.input-data': createAction('dmn:InputData', 'drd', 'dmn-icon-input-data', translate('Create input data')),
     'create.knowledge-source': createAction('dmn:KnowledgeSource', 'drd', 'dmn-icon-knowledge-source', translate('Create knowledge source')),
-    'create.business-knowledge-model': createAction('dmn:BusinessKnowledgeModel', 'drd', 'dmn-icon-business-knowledge', translate('Create knowledge model'))
+    'create.business-knowledge-model': createAction('dmn:BusinessKnowledgeModel', 'drd', 'dmn-icon-business-knowledge', translate('Create knowledge model')),
+    'create.decision-service': createAction('dmn:Decision', 'drd', 'dmn-icon-decision', translate('Create decision service'))
   });
   return actions;
 };
