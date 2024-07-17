@@ -148,7 +148,8 @@ function canCreate(shape, target) {
     'dmn:Decision',
     'dmn:InputData',
     'dmn:KnowledgeSource',
-    'dmn:TextAnnotation'
+    'dmn:TextAnnotation',
+    'dmn:DecisionService',
   ]) && is(target, 'dmn:Definitions');
 }
 
@@ -172,7 +173,8 @@ function canMove(elements, target) {
       'dmn:InformationRequirement',
       'dmn:AuthorityRequirement',
       'dmn:KnowledgeRequirement',
-      'dmn:Association'
+      'dmn:Association',
+      'dmn:DecisionService'
     ]);
   }) && is(target, 'dmn:Definitions')) {
     return true;

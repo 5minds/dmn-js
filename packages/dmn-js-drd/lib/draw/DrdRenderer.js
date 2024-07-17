@@ -378,6 +378,14 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
           markerEnd: marker('authority-requirement-end', fill, stroke)
         };
       return drawLine(p, element.waypoints, attrs);
+    },
+    'dmn:DecisionService': function (p, element) {
+      var rect = drawRect(p, element.width, element.height, 0, {
+        stroke: getStrokeColor(element, defaultStrokeColor),
+        fill: getFillColor(element, defaultFillColor)
+      });
+      renderEmbeddedLabel(p, element, 'center-middle');
+      return rect;
     }
   };
 
@@ -411,6 +419,7 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
     return line;
   }
   this.canRender = function (element) {
+    console.log('element', element);
     return is(element, 'dmn:DMNElement') || is(element, 'dmn:InformationRequirement') || is(element, 'dmn:KnowledgeRequirement') || is(element, 'dmn:AuthorityRequirement');
   };
   this.drawShape = drawShape;
