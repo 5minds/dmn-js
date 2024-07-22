@@ -124,7 +124,7 @@ ContextPadProvider.prototype.getContextPadEntries = function (element) {
       'append.input-data': appendAction('dmn:InputData', 'dmn-icon-input-data', translate('Append input data'))
     });
   }
-  if (is(businessObject, 'dmn:DRGElement')) {
+  if (is(businessObject, 'dmn:DRGElement') && !is(businessObject, 'dmn:DecisionService')) {
     assign(actions, {
       'append.text-annotation': appendAction('dmn:TextAnnotation', 'dmn-icon-text-annotation', translate('Add text annotation')),
       'connect': {
@@ -136,6 +136,11 @@ ContextPadProvider.prototype.getContextPadEntries = function (element) {
           dragstart: startConnect
         }
       }
+    });
+  }
+  if (is(businessObject, 'dmn:DecisionService')) {
+    assign(actions, {
+      'append.text-annotation': appendAction('dmn:TextAnnotation', 'dmn-icon-text-annotation', translate('Add text annotation'))
     });
   }
   if (is(businessObject, 'dmn:TextAnnotation')) {

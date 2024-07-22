@@ -211,7 +211,8 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
     });
   }
 
-  if (is(businessObject, 'dmn:DRGElement')) {
+  if (is(businessObject, 'dmn:DRGElement')
+    && !is(businessObject, 'dmn:DecisionService')) {
 
     assign(actions, {
       'append.text-annotation': appendAction(
@@ -231,6 +232,16 @@ ContextPadProvider.prototype.getContextPadEntries = function(element) {
           dragstart: startConnect
         }
       }
+    });
+  }
+
+  if (is(businessObject, 'dmn:DecisionService')) {
+    assign(actions, {
+      'append.text-annotation': appendAction(
+        'dmn:TextAnnotation',
+        'dmn-icon-text-annotation',
+        translate('Add text annotation')
+      ),
     });
   }
 
