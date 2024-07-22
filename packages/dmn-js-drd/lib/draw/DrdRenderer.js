@@ -419,7 +419,6 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
     return line;
   }
   this.canRender = function (element) {
-    console.log('element', element);
     return is(element, 'dmn:DMNElement') || is(element, 'dmn:InformationRequirement') || is(element, 'dmn:KnowledgeRequirement') || is(element, 'dmn:AuthorityRequirement');
   };
   this.drawShape = drawShape;

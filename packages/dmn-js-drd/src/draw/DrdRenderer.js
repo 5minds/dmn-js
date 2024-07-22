@@ -503,7 +503,6 @@ export default function DrdRenderer(
   }
 
   this.canRender = function(element) {
-    console.log('element', element);
     return is(element, 'dmn:DMNElement') ||
            is(element, 'dmn:InformationRequirement') ||
            is(element, 'dmn:KnowledgeRequirement') ||
