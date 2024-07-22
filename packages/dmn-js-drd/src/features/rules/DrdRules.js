@@ -68,7 +68,7 @@ DrdRules.prototype.init = function() {
   this.addRule('shape.resize', function(context) {
     var shape = context.shape;
 
-    return is(shape, 'dmn:TextAnnotation');
+    return is(shape, 'dmn:TextAnnotation') || is(shape, 'dmn:DecisionService');
   });
 
 };
