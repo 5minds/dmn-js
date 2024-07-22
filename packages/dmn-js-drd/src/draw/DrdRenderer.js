@@ -453,7 +453,7 @@ export default function DrdRenderer(
       return drawLine(p, element.waypoints, attrs);
     },
     'dmn:DecisionService': function(p, element) {
-      var rect = drawRect(p, element.width, element.height, 0, {
+      var rect = drawRect(p, element.width, element.height, 15, {
         stroke: getStrokeColor(element, defaultStrokeColor),
         fill: getFillColor(element, defaultFillColor)
       });
