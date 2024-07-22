@@ -18,6 +18,10 @@ export var KNOWLEDGE_SOURCE_SIZE = {
   width: 100,
   height: 63
 };
+export var DECISION_SERVICE_SIZE = {
+  width: 280,
+  height: 140
+};
 
 /**
  * A drd-aware factory for diagram-js shapes
@@ -69,6 +73,9 @@ ElementFactory.prototype._getDefaultSize = function (semantic) {
   }
   if (is(semantic, 'dmn:KnowledgeSource')) {
     return KNOWLEDGE_SOURCE_SIZE;
+  }
+  if (is(semantic, 'dmn:DecisionService')) {
+    return DECISION_SERVICE_SIZE;
   }
   return {
     width: 100,

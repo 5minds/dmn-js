@@ -14,6 +14,7 @@ export var BUSINESS_KNOWLEDGE_MODEL_SIZE = { width: 135, height: 46 };
 export var DECISION_SIZE = { width: 180, height: 80 };
 export var INPUT_DATA_SIZE = { width: 125, height: 45 };
 export var KNOWLEDGE_SOURCE_SIZE = { width: 100, height: 63 };
+export var DECISION_SERVICE_SIZE = { width: 280, height: 140 };
 
 
 /**
@@ -87,6 +88,10 @@ ElementFactory.prototype._getDefaultSize = function(semantic) {
 
   if (is(semantic, 'dmn:KnowledgeSource')) {
     return KNOWLEDGE_SOURCE_SIZE;
+  }
+
+  if (is(semantic, 'dmn:DecisionService')) {
+    return DECISION_SERVICE_SIZE;
   }
 
   return { width: 100, height: 80 };
