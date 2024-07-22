@@ -101,7 +101,13 @@ function canConnect(source, target) {
   return false;
 }
 function canCreate(shape, target) {
-  return isAny(shape, ['dmn:BusinessKnowledgeModel', 'dmn:Decision', 'dmn:InputData', 'dmn:KnowledgeSource', 'dmn:TextAnnotation', 'dmn:DecisionService']) && is(target, 'dmn:Definitions');
+  if (isAny(shape, ['dmn:BusinessKnowledgeModel', 'dmn:Decision', 'dmn:InputData', 'dmn:KnowledgeSource', 'dmn:TextAnnotation', 'dmn:DecisionService']) && is(target, 'dmn:Definitions')) {
+    return true;
+  }
+  if (is(shape, 'dmn:Decision') && is(target, 'dmn:DecisionService')) {
+    return true;
+  }
+  return false;
 }
 function canMove(elements, target) {
   if (!isArray(elements)) {
@@ -115,6 +121,13 @@ function canMove(elements, target) {
   if (every(elements, function (element) {
     return isAny(element, ['dmn:BusinessKnowledgeModel', 'dmn:Decision', 'dmn:InputData', 'dmn:KnowledgeSource', 'dmn:TextAnnotation', 'dmn:InformationRequirement', 'dmn:AuthorityRequirement', 'dmn:KnowledgeRequirement', 'dmn:Association', 'dmn:DecisionService']);
   }) && is(target, 'dmn:Definitions')) {
+    return true;
+  }
+
+  // decisions in decisions services
+  if (every(elements, function (element) {
+    return is(element, 'dmn:Decision');
+  }) && is(target, 'dmn:DecisionService')) {
     return true;
   }
   return false;

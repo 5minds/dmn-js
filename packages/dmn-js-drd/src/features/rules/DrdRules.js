@@ -143,14 +143,22 @@ function canConnect(source, target) {
 }
 
 function canCreate(shape, target) {
-  return isAny(shape, [
+  if (isAny(shape, [
     'dmn:BusinessKnowledgeModel',
     'dmn:Decision',
     'dmn:InputData',
     'dmn:KnowledgeSource',
     'dmn:TextAnnotation',
     'dmn:DecisionService',
-  ]) && is(target, 'dmn:Definitions');
+  ]) && is(target, 'dmn:Definitions')) {
+    return true;
+  }
+
+  if (is(shape, 'dmn:Decision') && is(target, 'dmn:DecisionService')) {
+    return true;
+  }
+
+  return false;
 }
 
 function canMove(elements, target) {
@@ -177,6 +185,13 @@ function canMove(elements, target) {
       'dmn:DecisionService'
     ]);
   }) && is(target, 'dmn:Definitions')) {
+    return true;
+  }
+
+  // decisions in decisions services
+  if (every(elements, function(element) {
+    return is(element, 'dmn:Decision');
+  }) && is(target, 'dmn:DecisionService')) {
     return true;
   }
 
