@@ -384,7 +384,7 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
         stroke: getStrokeColor(element, defaultStrokeColor),
         fill: getFillColor(element, defaultFillColor)
       });
-      renderEmbeddedLabel(p, element, 'center-middle');
+      renderEmbeddedLabel(p, element, 'right');
       return rect;
     }
   };

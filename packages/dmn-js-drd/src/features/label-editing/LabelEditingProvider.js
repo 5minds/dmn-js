@@ -58,7 +58,8 @@ export default function LabelEditingProvider(
       is(element, 'dmn:InputData') ||
       is(element, 'dmn:BusinessKnowledgeModel') ||
       is(element, 'dmn:KnowledgeSource') ||
-      is(element, 'dmn:TextAnnotation')
+      is(element, 'dmn:TextAnnotation') ||
+      is(element, 'dmn:DecisionService')
     ) {
       directEditing.activate(element);
     }
@@ -211,6 +212,23 @@ LabelEditingProvider.prototype.getEditingBBox = function(element) {
       paddingRight: (5 * zoom) + 'px',
       fontSize: defaultFontSize + 'px',
       lineHeight: defaultLineHeight
+    });
+  }
+
+  if (is(element, 'dmn:DecisionService')) {
+    assign(bounds, {
+      x: bbox.x + bbox.width - 100 * zoom,
+      y: bbox.y + defaultFontSize,
+      width: 100 * zoom,
+      height: defaultFontSize
+    });
+
+    assign(style, {
+      textAlign: 'right',
+      fontSize: defaultFontSize + 'px',
+      lineHeight: defaultLineHeight,
+      paddingTop: (5 * zoom) + 'px',
+      paddingRight: (5 * zoom) + 'px'
     });
   }
 

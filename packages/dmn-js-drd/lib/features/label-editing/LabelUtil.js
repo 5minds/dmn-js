@@ -1,6 +1,6 @@
 import { is } from 'dmn-js-shared/lib/util/ModelUtil';
 function getLabelAttr(semantic) {
-  if (is(semantic, 'dmn:Decision') || is(semantic, 'dmn:BusinessKnowledgeModel') || is(semantic, 'dmn:InputData') || is(semantic, 'dmn:KnowledgeSource')) {
+  if (is(semantic, 'dmn:Decision') || is(semantic, 'dmn:BusinessKnowledgeModel') || is(semantic, 'dmn:InputData') || is(semantic, 'dmn:KnowledgeSource') || is(semantic, 'dmn:DecisionService')) {
     return 'name';
   }
   if (is(semantic, 'dmn:TextAnnotation')) {

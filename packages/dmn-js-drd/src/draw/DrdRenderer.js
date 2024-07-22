@@ -458,7 +458,7 @@ export default function DrdRenderer(
         fill: getFillColor(element, defaultFillColor)
       });
 
-      renderEmbeddedLabel(p, element, 'center-middle');
+      renderEmbeddedLabel(p, element, 'right');
 
       return rect;
     }
