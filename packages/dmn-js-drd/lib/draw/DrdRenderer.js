@@ -382,6 +382,7 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
     'dmn:DecisionService': function (p, element) {
       var rect = drawRect(p, element.width, element.height, 15, {
         stroke: getStrokeColor(element, defaultStrokeColor),
+        strokeWidth: 4,
         fill: getFillColor(element, defaultFillColor)
       });
       renderEmbeddedLabel(p, element, 'right');
