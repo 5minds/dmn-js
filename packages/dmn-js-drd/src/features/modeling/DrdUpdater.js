@@ -222,7 +222,6 @@ DrdUpdater.prototype.updateConnectionWaypoints = function(context) {
 
 DrdUpdater.prototype.updateParent = function(element, oldParent) {
   var parent = element.parent;
-  console.trace('updateParent', element, oldParent, parent);
 
   if (!is(element, 'dmn:DRGElement') && !is(element, 'dmn:Artifact')) {
     parent = oldParent;
@@ -237,88 +236,18 @@ DrdUpdater.prototype.updateParent = function(element, oldParent) {
 };
 
 DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
-  var children,
-      containment;
-
-  console.log('updateSemanticParent', businessObject, parent);
 
   if (businessObject.$parent === parent) {
     return;
   }
 
-  const decisionInDecisionService = is(businessObject, 'dmn:Decision')
-    &&
-    (is(parent, 'dmn:DecisionService')
-      || is(businessObject.$parent, 'dmn:DecisionService'));
+  if (is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:DecisionService')
+    && is(businessObject.$parent, 'dmn:Definitions')) {
 
-  if (is(businessObject, 'dmn:DRGElement')) {
-    containment = 'drgElement';
-  } else if (is(businessObject, 'dmn:Artifact')) {
-    containment = 'artifact';
-  } else if (is(businessObject, 'dmn:InformationRequirement')) {
-    containment = 'informationRequirement';
-  } else if (is(businessObject, 'dmn:AuthorityRequirement')) {
-    containment = 'authorityRequirement';
-  } else if (is(businessObject, 'dmn:KnowledgeRequirement')) {
-    containment = 'knowledgeRequirement';
-  }
+    // Case 1: Moving decision from definitions to decision service
 
-  if (businessObject.$parent
-    && !is(businessObject.$parent, 'dmn:Definitions')
-    && decisionInDecisionService) {
-    const outputDecision = businessObject.$parent.get('outputDecision');
-    const encapsulatedDecision = businessObject.$parent.get('encapsulatedDecision');
-    const drgElement = businessObject.$parent.$parent.get('drgElement');
-
-    const deleteIndexOutput = outputDecision.findIndex(decision =>
-      decision.href !== '#' + businessObject.id
-    );
-    const deleteIndexEncapsulated = encapsulatedDecision.findIndex(
-      decision => decision.href !== '#' + businessObject.id);
-
-    console.log('outputToDel', outputDecision[deleteIndexOutput],
-      'encapsulatedToDel', encapsulatedDecision[deleteIndexEncapsulated]);
-
-    outputDecision.splice(deleteIndexOutput, 1);
-    encapsulatedDecision.splice(deleteIndexEncapsulated, 1);
-    collectionRemove(drgElement, businessObject);
-  }
-
-  if (businessObject.$parent
-    && is(businessObject.$parent, 'dmn:Definitions')
-    && decisionInDecisionService) {
-    const outputDecision = parent.get('outputDecision');
-    const encapsulatedDecision = parent.get('encapsulatedDecision');
-
-    const deleteIndexOutput = outputDecision.findIndex(decision =>
-      decision.href !== '#' + businessObject.id
-    );
-    const deleteIndexEncapsulated = encapsulatedDecision.findIndex(
-      decision => decision.href !== '#' + businessObject.id);
-
-    console.log('outputToDel', outputDecision[deleteIndexOutput],
-      'encapsulatedToDel', encapsulatedDecision[deleteIndexEncapsulated]);
-
-    outputDecision.splice(deleteIndexOutput, 1);
-    encapsulatedDecision.splice(deleteIndexEncapsulated, 1);
-  }
-
-  if (businessObject.$parent && !decisionInDecisionService) {
-
-    // remove from old parent
-    children = businessObject.$parent.get(containment);
-
-    collectionRemove(children, businessObject);
-  }
-
-  console.log('should add to decision service',
-    parent && decisionInDecisionService && !is(parent, 'dmn:Definitions'));
-  console.log('parent', parent, 'decisionInDecisionService', decisionInDecisionService,
-    'is', is(parent, 'dmn:Definitions'));
-
-  if (parent && decisionInDecisionService && !is(parent, 'dmn:Definitions')) {
-
-    // add to new parent
+    // add to new parent (decision service)
     const outputDecisions = parent.get('outputDecision');
     const encapsulatedDecisions = parent.get('encapsulatedDecision');
     const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
@@ -331,34 +260,163 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     outputDecisions.push(outputDecision);
     encapsulatedDecisions.push(encapsulatedDecision);
 
-    businessObject.$parent = parent;
     outputDecision.$parent = parent;
     encapsulatedDecision.$parent = parent;
-
-    if (!is(businessObject.$parent, 'dmn:Definitions')) {
-      const drgElement = parent.$parent.get('drgElement');
-      drgElement.push(businessObject);
-    }
-  }
-
-  if (parent && decisionInDecisionService && is(parent, 'dmn:Definitions')) {
-    children = parent.get('drgElement');
-    children.push(businessObject);
     businessObject.$parent = parent;
-  }
+  } else if (
+    is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:Definitions')
+    && is(businessObject.$parent, 'dmn:DecisionService')
+  ) {
 
-  if (parent && !decisionInDecisionService) {
+    // Case 2: Moving decision from decision service to definitions
 
-    // add to new parent
-    children = parent.get(containment);
+    // remove from old parent (decision service)
+    const outputDecisions = businessObject.$parent.get('outputDecision');
+    const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
+    const deleteIndexOutput = outputDecisions.findIndex(decision =>
+      decision.href === '#' + businessObject.id
+    );
+    const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
+      decision => decision.href === '#' + businessObject.id);
 
-    if (children) {
-      children.push(businessObject);
+    outputDecisions.splice(deleteIndexOutput, 1);
+    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
 
-      businessObject.$parent = parent;
+    // add to new parent (definitions)
+    businessObject.$parent = parent;
+  } else if (is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:DecisionService')
+    && !businessObject.$parent) {
+
+    // Case 3: Creating decision in decision service
+
+    // add to new parent (decision service)
+    const outputDecisions = parent.get('outputDecision');
+    const encapsulatedDecisions = parent.get('encapsulatedDecision');
+
+    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+
+    outputDecisions.push(outputDecision);
+    encapsulatedDecisions.push(encapsulatedDecision);
+
+    outputDecision.$parent = parent;
+    encapsulatedDecision.$parent = parent;
+    businessObject.$parent = parent;
+
+    // add to definitions as drgElement
+    const drgElement = parent.$parent.get('drgElement');
+    drgElement.push(businessObject);
+  } else if (
+    is(businessObject, 'dmn:Decision')
+    && parent === null
+    && is(businessObject.$parent, 'dmn:DecisionService')
+  ) {
+
+    // Case 4: Deleting decision from decision service
+
+    // remove from old parent (decision service)
+    const outputDecisions = businessObject.$parent.get('outputDecision');
+    const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
+
+    const deleteIndexOutput = outputDecisions.findIndex(decision =>
+      decision.href === '#' + businessObject.id
+    );
+    const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
+      decision => decision.href === '#' + businessObject.id);
+
+    outputDecisions.splice(deleteIndexOutput, 1);
+    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
+
+    // remove from definitions as drgElement
+    const drgElement = businessObject.$parent.$parent.get('drgElement');
+    collectionRemove(drgElement, businessObject);
+  } else if (
+    is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:DecisionService')
+    && is(businessObject.$parent, 'dmn:DecisionService')
+    && businessObject.$parent !== parent
+  ) {
+
+    // Case 6: Moving decision from decision service to another decision service
+
+    // remove from old parent (decision service)
+    const outputDecisions = businessObject.$parent.get('outputDecision');
+    const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
+
+    const deleteIndexOutput = outputDecisions.findIndex(decision =>
+      decision.href === '#' + businessObject.id
+    );
+    const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
+      decision => decision.href === '#' + businessObject.id
+    );
+
+    outputDecisions.splice(deleteIndexOutput, 1);
+    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
+
+    // add to new parent (decision service)
+    const outputDecisionsNew = parent.get('outputDecision');
+    const encapsulatedDecisionsNew = parent.get('encapsulatedDecision');
+    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+
+    outputDecisionsNew.push(outputDecision);
+    encapsulatedDecisionsNew.push(encapsulatedDecision);
+
+    outputDecision.$parent = parent;
+    encapsulatedDecision.$parent = parent;
+    businessObject.$parent = parent;
+  } else {
+
+    // Any other case
+
+    let containment;
+
+    if (is(businessObject, 'dmn:DRGElement')) {
+      containment = 'drgElement';
+    } else if (is(businessObject, 'dmn:Artifact')) {
+      containment = 'artifact';
+    } else if (is(businessObject, 'dmn:InformationRequirement')) {
+      containment = 'informationRequirement';
+    } else if (is(businessObject, 'dmn:AuthorityRequirement')) {
+      containment = 'authorityRequirement';
+    } else if (is(businessObject, 'dmn:KnowledgeRequirement')) {
+      containment = 'knowledgeRequirement';
+    }
+
+    let children;
+
+    if (businessObject.$parent) {
+
+      // remove from old parent
+      children = businessObject.$parent.get(containment);
+
+      collectionRemove(children, businessObject);
+    }
+
+    if (parent) {
+
+      // add to new parent
+      children = parent.get(containment);
+
+      if (children) {
+        children.push(businessObject);
+
+        businessObject.$parent = parent;
+      }
     }
   }
 
+  // remove parent
   if (!parent) {
     businessObject.$parent = null;
   }
