@@ -53,7 +53,7 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
       title: title,
       action: {
         dragstart: createListener,
-        click: createListener
+        click: createListener,
       }
     };
   }

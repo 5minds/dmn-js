@@ -383,7 +383,7 @@ export default function DrdRenderer(config, eventBus, pathMap, styles, textRende
       var rect = drawRect(p, element.width, element.height, 15, {
         stroke: getStrokeColor(element, defaultStrokeColor),
         strokeWidth: 4,
-        fill: getFillColor(element, defaultFillColor)
+        fill: 'none'
       });
       renderEmbeddedLabel(p, element, 'right');
       return rect;

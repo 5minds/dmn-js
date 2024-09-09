@@ -43,7 +43,7 @@ export default function DrdUpdater(connectionDocking, definitionPropertiesView, 
     }
     self.updateParent(shape || connection, oldParent);
   }
-  this.executed(['connection.create', 'connection.delete', 'connection.move', 'shape.create', 'shape.delete'], updateParent, true);
+  this.executed(['connection.create', 'connection.delete', 'connection.move', 'shape.create', 'shape.delete', 'shape.move'], updateParent, true);
   this.reverted(['connection.create', 'connection.delete', 'connection.move', 'shape.create', 'shape.delete'], reverseUpdateParent, true);
   function updateBounds(context) {
     var shape = context.shape;
@@ -127,6 +127,7 @@ DrdUpdater.prototype.updateConnectionWaypoints = function (context) {
 };
 DrdUpdater.prototype.updateParent = function (element, oldParent) {
   var parent = element.parent;
+  console.trace('updateParent', element, oldParent, parent);
   if (!is(element, 'dmn:DRGElement') && !is(element, 'dmn:Artifact')) {
     parent = oldParent;
   }
@@ -137,9 +138,11 @@ DrdUpdater.prototype.updateParent = function (element, oldParent) {
 };
 DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
   var children, containment;
+  console.log('updateSemanticParent', businessObject, parent);
   if (businessObject.$parent === parent) {
     return;
   }
+  const decisionInDecisionService = is(businessObject, 'dmn:Decision') && (is(parent, 'dmn:DecisionService') || is(businessObject.$parent, 'dmn:DecisionService'));
   if (is(businessObject, 'dmn:DRGElement')) {
     containment = 'drgElement';
   } else if (is(businessObject, 'dmn:Artifact')) {
@@ -151,19 +154,67 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
   } else if (is(businessObject, 'dmn:KnowledgeRequirement')) {
     containment = 'knowledgeRequirement';
   }
-  if (businessObject.$parent) {
+  if (businessObject.$parent && !is(businessObject.$parent, 'dmn:Definitions') && decisionInDecisionService) {
+    const outputDecision = businessObject.$parent.get('outputDecision');
+    const encapsulatedDecision = businessObject.$parent.get('encapsulatedDecision');
+    const drgElement = businessObject.$parent.$parent.get('drgElement');
+    const deleteIndexOutput = outputDecision.findIndex(decision => decision.href !== '#' + businessObject.id);
+    const deleteIndexEncapsulated = encapsulatedDecision.findIndex(decision => decision.href !== '#' + businessObject.id);
+    console.log('outputToDel', outputDecision[deleteIndexOutput], 'encapsulatedToDel', encapsulatedDecision[deleteIndexEncapsulated]);
+    outputDecision.splice(deleteIndexOutput, 1);
+    encapsulatedDecision.splice(deleteIndexEncapsulated, 1);
+    collectionRemove(drgElement, businessObject);
+  }
+  if (businessObject.$parent && is(businessObject.$parent, 'dmn:Definitions') && decisionInDecisionService) {
+    const outputDecision = parent.get('outputDecision');
+    const encapsulatedDecision = parent.get('encapsulatedDecision');
+    const deleteIndexOutput = outputDecision.findIndex(decision => decision.href !== '#' + businessObject.id);
+    const deleteIndexEncapsulated = encapsulatedDecision.findIndex(decision => decision.href !== '#' + businessObject.id);
+    console.log('outputToDel', outputDecision[deleteIndexOutput], 'encapsulatedToDel', encapsulatedDecision[deleteIndexEncapsulated]);
+    outputDecision.splice(deleteIndexOutput, 1);
+    encapsulatedDecision.splice(deleteIndexEncapsulated, 1);
+  }
+  if (businessObject.$parent && !decisionInDecisionService) {
     // remove from old parent
     children = businessObject.$parent.get(containment);
     collectionRemove(children, businessObject);
   }
-  if (parent) {
+  console.log('should add to decision service', parent && decisionInDecisionService && !is(parent, 'dmn:Definitions'));
+  console.log('parent', parent, 'decisionInDecisionService', decisionInDecisionService, 'is', is(parent, 'dmn:Definitions'));
+  if (parent && decisionInDecisionService && !is(parent, 'dmn:Definitions')) {
+    // add to new parent
+    const outputDecisions = parent.get('outputDecision');
+    const encapsulatedDecisions = parent.get('encapsulatedDecision');
+    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
+      href: '#' + businessObject.id
+    });
+    outputDecisions.push(outputDecision);
+    encapsulatedDecisions.push(encapsulatedDecision);
+    businessObject.$parent = parent;
+    outputDecision.$parent = parent;
+    encapsulatedDecision.$parent = parent;
+    if (!is(businessObject.$parent, 'dmn:Definitions')) {
+      const drgElement = parent.$parent.get('drgElement');
+      drgElement.push(businessObject);
+    }
+  }
+  if (parent && decisionInDecisionService && is(parent, 'dmn:Definitions')) {
+    children = parent.get('drgElement');
+    children.push(businessObject);
+    businessObject.$parent = parent;
+  }
+  if (parent && !decisionInDecisionService) {
     // add to new parent
     children = parent.get(containment);
     if (children) {
       children.push(businessObject);
       businessObject.$parent = parent;
     }
-  } else {
+  }
+  if (!parent) {
     businessObject.$parent = null;
   }
 };

@@ -456,7 +456,7 @@ export default function DrdRenderer(
       var rect = drawRect(p, element.width, element.height, 15, {
         stroke: getStrokeColor(element, defaultStrokeColor),
         strokeWidth: 4,
-        fill: getFillColor(element, defaultFillColor)
+        fill: 'none',
       });
 
       renderEmbeddedLabel(p, element, 'right');

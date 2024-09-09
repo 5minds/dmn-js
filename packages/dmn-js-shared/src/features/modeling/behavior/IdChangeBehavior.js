@@ -118,8 +118,23 @@ function updateElementReferences(element, oldId, id) {
           requiredKnowledge.href = `#${id}`;
         }
       });
-    }
+    },
 
+    outputDecision: () => {
+      element.outputDecision.forEach(outputDecision => {
+        if (outputDecision && outputDecision.href === `#${oldId}`) {
+          outputDecision.href = `#${id}`;
+        }
+      });
+    },
+
+    encapsulatedDecision: () => {
+      element.encapsulatedDecision.forEach(encapsulatedDecision => {
+        if (encapsulatedDecision && encapsulatedDecision.href === `#${oldId}`) {
+          encapsulatedDecision.href = `#${id}`;
+        }
+      });
+    }
   };
 
   forEach(handlers, (handler, key) => {
