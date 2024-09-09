@@ -140,7 +140,7 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
     return;
   }
   if (is(businessObject, 'dmn:Decision') && is(parent, 'dmn:DecisionService') && is(businessObject.$parent, 'dmn:Definitions')) {
-    // Case 1: Moving decision from definitions to decision service
+    // Moving decision from definitions to decision service
 
     // add to new parent (decision service)
     const outputDecisions = parent.get('outputDecision');
@@ -157,7 +157,7 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
     encapsulatedDecision.$parent = parent;
     businessObject.$parent = parent;
   } else if (is(businessObject, 'dmn:Decision') && is(parent, 'dmn:Definitions') && is(businessObject.$parent, 'dmn:DecisionService')) {
-    // Case 2: Moving decision from decision service to definitions
+    // Moving decision from decision service to definitions
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');
@@ -170,7 +170,7 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
     // add to new parent (definitions)
     businessObject.$parent = parent;
   } else if (is(businessObject, 'dmn:Decision') && is(parent, 'dmn:DecisionService') && !businessObject.$parent) {
-    // Case 3: Creating decision in decision service
+    // Creating decision in decision service
 
     // add to new parent (decision service)
     const outputDecisions = parent.get('outputDecision');
@@ -191,7 +191,7 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
     const drgElement = parent.$parent.get('drgElement');
     drgElement.push(businessObject);
   } else if (is(businessObject, 'dmn:Decision') && parent === null && is(businessObject.$parent, 'dmn:DecisionService')) {
-    // Case 4: Deleting decision from decision service
+    // Deleting decision from decision service
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');
@@ -205,7 +205,7 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent) {
     const drgElement = businessObject.$parent.$parent.get('drgElement');
     collectionRemove(drgElement, businessObject);
   } else if (is(businessObject, 'dmn:Decision') && is(parent, 'dmn:DecisionService') && is(businessObject.$parent, 'dmn:DecisionService') && businessObject.$parent !== parent) {
-    // Case 6: Moving decision from decision service to another decision service
+    // Moving decision from decision service to another decision service
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');

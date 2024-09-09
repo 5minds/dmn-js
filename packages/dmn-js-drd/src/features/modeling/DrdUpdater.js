@@ -245,7 +245,7 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     && is(parent, 'dmn:DecisionService')
     && is(businessObject.$parent, 'dmn:Definitions')) {
 
-    // Case 1: Moving decision from definitions to decision service
+    // Moving decision from definitions to decision service
 
     // add to new parent (decision service)
     const outputDecisions = parent.get('outputDecision');
@@ -269,7 +269,7 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     && is(businessObject.$parent, 'dmn:DecisionService')
   ) {
 
-    // Case 2: Moving decision from decision service to definitions
+    // Moving decision from decision service to definitions
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');
@@ -289,7 +289,7 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     && is(parent, 'dmn:DecisionService')
     && !businessObject.$parent) {
 
-    // Case 3: Creating decision in decision service
+    // Creating decision in decision service
 
     // add to new parent (decision service)
     const outputDecisions = parent.get('outputDecision');
@@ -318,7 +318,7 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     && is(businessObject.$parent, 'dmn:DecisionService')
   ) {
 
-    // Case 4: Deleting decision from decision service
+    // Deleting decision from decision service
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');
@@ -343,7 +343,7 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     && businessObject.$parent !== parent
   ) {
 
-    // Case 6: Moving decision from decision service to another decision service
+    // Moving decision from decision service to another decision service
 
     // remove from old parent (decision service)
     const outputDecisions = businessObject.$parent.get('outputDecision');
