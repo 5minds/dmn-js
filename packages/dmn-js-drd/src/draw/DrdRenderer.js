@@ -461,8 +461,16 @@ export default function DrdRenderer(
 
       renderEmbeddedLabel(p, element, 'right');
 
+      if (getSemantic(element).isSplit) {
+        drawLine(p, [
+          { x: 0, y: element.height / 2 },
+          { x: element.width, y: element.height / 2 }
+        ]);
+      }
+
       return rect;
     }
+
   };
 
 

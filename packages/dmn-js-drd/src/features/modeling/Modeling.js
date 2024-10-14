@@ -5,7 +5,7 @@ import BaseModeling from 'diagram-js/lib/features/modeling/Modeling';
 import IdClaimHandler from './cmd/IdClaimHandler.js';
 import UpdateLabelHandler from '../label-editing/cmd/UpdateLabelHandler.js';
 import UpdatePropertiesHandler from './cmd/UpdatePropertiesHandler.js';
-
+import DivideDecisionServiceHandler from './cmd/DivideDecisionServiceHandler.js';
 
 /**
  * DMN modeling.
@@ -56,10 +56,10 @@ Modeling.prototype.connect = function(source, target, attrs, hints) {
 
 Modeling.prototype.getHandlers = function() {
   var handlers = BaseModeling.prototype.getHandlers.call(this);
-
   handlers['id.updateClaim'] = IdClaimHandler;
   handlers['element.updateLabel'] = UpdateLabelHandler;
   handlers['element.updateProperties'] = UpdatePropertiesHandler;
+  handlers['decisionService.divide'] = DivideDecisionServiceHandler;
 
   return handlers;
 };
@@ -84,5 +84,11 @@ Modeling.prototype.updateLabel = function(element, newLabel, newBounds, hints) {
     newLabel: newLabel,
     newBounds: newBounds,
     hints: hints || {}
+  });
+};
+
+Modeling.prototype.divideDecisionService = function(decisionService) {
+  this._commandStack.execute('decisionService.divide', {
+    shape: decisionService
   });
 };

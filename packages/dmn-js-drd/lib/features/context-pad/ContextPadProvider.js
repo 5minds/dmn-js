@@ -104,6 +104,12 @@ ContextPadProvider.prototype.getContextPadEntries = function (element) {
       }
     };
   }
+  function divideDecisionServiceHandler() {
+    return function (_, element) {
+      modeling.divideDecisionService(element);
+      contextPad.open(element, true);
+    };
+  }
   if (is(businessObject, 'dmn:Decision')) {
     assign(actions, {
       'append.decision': appendAction('dmn:Decision', 'dmn-icon-decision', translate('Append decision'))
@@ -140,7 +146,16 @@ ContextPadProvider.prototype.getContextPadEntries = function (element) {
   }
   if (is(businessObject, 'dmn:DecisionService')) {
     assign(actions, {
-      'append.text-annotation': appendAction('dmn:TextAnnotation', 'dmn-icon-text-annotation', translate('Add text annotation'))
+      'append.text-annotation': appendAction('dmn:TextAnnotation', 'dmn-icon-text-annotation', translate('Add text annotation')),
+      // TODO create icon
+      'decision-service-divide': {
+        group: 'split',
+        className: 'dmn-icon-decision-service-divide',
+        title: businessObject.isSplit ? translate('Merge decision service') : translate('Split decision service'),
+        action: {
+          click: divideDecisionServiceHandler()
+        }
+      }
     });
   }
   if (is(businessObject, 'dmn:TextAnnotation')) {

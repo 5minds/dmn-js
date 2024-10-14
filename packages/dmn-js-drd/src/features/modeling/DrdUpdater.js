@@ -230,39 +230,27 @@ DrdUpdater.prototype.updateParent = function(element, oldParent) {
   var businessObject = element.businessObject,
       parentBo = parent && parent.businessObject;
 
-  this.updateSemanticParent(businessObject, parentBo);
+  this.updateSemanticParent(businessObject, parentBo, element, parent);
 
   this.updateDiParent(businessObject.di, parentBo && parentBo.di);
 };
 
-DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
-
+DrdUpdater.prototype.updateSemanticParent =
+function(businessObject, parent, element, parentElement) {
   if (businessObject.$parent === parent) {
     return;
   }
 
-  if (is(businessObject, 'dmn:Decision')
+  const decisionFromDefinitionsToDecisionService = is(businessObject, 'dmn:Decision')
     && is(parent, 'dmn:DecisionService')
-    && is(businessObject.$parent, 'dmn:Definitions')) {
+    && is(businessObject.$parent, 'dmn:Definitions');
 
-    // Moving decision from definitions to decision service
-
-    // add to new parent (decision service)
-    const outputDecisions = parent.get('outputDecision');
-    const encapsulatedDecisions = parent.get('encapsulatedDecision');
-    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
-    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
-
-    outputDecisions.push(outputDecision);
-    encapsulatedDecisions.push(encapsulatedDecision);
-
-    outputDecision.$parent = parent;
-    encapsulatedDecision.$parent = parent;
-    businessObject.$parent = parent;
+  if (decisionFromDefinitionsToDecisionService) {
+    this.moveDecisionFromDefinitionsToDecisionService(
+      businessObject,
+      parent,
+      element,
+      parentElement);
   } else if (
     is(businessObject, 'dmn:Decision')
     && is(parent, 'dmn:Definitions')
@@ -280,8 +268,9 @@ DrdUpdater.prototype.updateSemanticParent = function(businessObject, parent) {
     const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
       decision => decision.href === '#' + businessObject.id);
 
-    outputDecisions.splice(deleteIndexOutput, 1);
-    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
+    deleteIndexOutput >= 0 && outputDecisions.splice(deleteIndexOutput, 1);
+    deleteIndexEncapsulated >= 0 &&
+      encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
 
     // add to new parent (definitions)
     businessObject.$parent = parent;
@@ -448,4 +437,75 @@ DrdUpdater.prototype.updateDiParent = function(di, parentDi) {
   } else {
     throw new Error('unsupported');
   }
+};
+
+DrdUpdater.prototype.moveDecisionFromDefinitionsToDecisionService =
+  function(decision, decisionService, element, parentElement) {
+    this._createEncapsulatedDecision(decision, decisionService);
+
+    const isSplit = decisionService.isSplit;
+
+    if (!isSplit) {
+      this._createOutputDecision(decision, decisionService);
+    } else {
+      const isOutputDecision = element.y < parentElement.y + parentElement.height / 2;
+
+      if (isOutputDecision) {
+        this._createOutputDecision(decision, decisionService);
+      }
+    }
+
+    decision.$parent = decisionService;
+  };
+
+DrdUpdater.prototype.moveDecisionFromDecisionServiceToDefinitions =
+  function(decision, decisionService, definitions) {
+    this._removeOutputDecision(decision, decisionService);
+    this._removeEncapsulatedDecision(decision, decisionService);
+  };
+
+DrdUpdater.prototype._createOutputDecision = function(decision, decisionService) {
+  const outputDecisions = decisionService.get('outputDecision');
+  const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
+    href: '#' + decision.id
+  });
+
+  outputDecisions.push(outputDecision);
+  outputDecision.$parent = decisionService;
+};
+
+DrdUpdater.prototype._createEncapsulatedDecision = function(decision, decisionService) {
+  const encapsulatedDecisions = decisionService.get('encapsulatedDecision');
+  const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
+    href: '#' + decision.id
+  });
+
+  encapsulatedDecisions.push(encapsulatedDecision);
+  encapsulatedDecision.$parent = decisionService;
+};
+
+DrdUpdater.prototype._removeOutputDecision = function(decision, decisionService) {
+  const outputDecisions = decisionService.get('outputDecision');
+  const deleteIndexOutput = outputDecisions.findIndex(d =>
+    d.href === '#' + decision.id
+  );
+
+  if (deleteIndexOutput < 0) {
+    return;
+  }
+
+  outputDecisions.splice(deleteIndexOutput, 1);
+};
+
+DrdUpdater.prototype._removeEncapsulatedDecision = function(decision, decisionService) {
+  const encapsulatedDecisions = decisionService.get('encapsulatedDecision');
+  const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(d =>
+    d.href === '#' + decision.id
+  );
+
+  if (deleteIndexEncapsulated < 0) {
+    return;
+  }
+
+  encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
 };
