@@ -245,25 +245,27 @@ function(businessObject, parent, element, parentElement) {
     && is(parent, 'dmn:DecisionService')
     && is(businessObject.$parent, 'dmn:Definitions');
 
+  const decisionFromDecisionServiceToDefinitions = is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:Definitions')
+    && is(businessObject.$parent, 'dmn:DecisionService');
+
+  const creatingDecisionInDecisionService = is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:DecisionService')
+    && !businessObject.$parent;
+
   if (decisionFromDefinitionsToDecisionService) {
     this.moveDecisionFromDefinitionsToDecisionService(
       businessObject,
       parent,
       element,
       parentElement);
-  } else if (
-    is(businessObject, 'dmn:Decision')
-    && is(parent, 'dmn:Definitions')
-    && is(businessObject.$parent, 'dmn:DecisionService')
-  ) {
+  } else if (decisionFromDecisionServiceToDefinitions) {
     this.moveDecisionFromDecisionServiceToDefinitions(
       businessObject,
       businessObject.$parent,
       parent
     );
-  } else if (is(businessObject, 'dmn:Decision')
-    && is(parent, 'dmn:DecisionService')
-    && !businessObject.$parent) {
+  } else if (creatingDecisionInDecisionService) {
     this.createDecisionInDecisionService(
       businessObject,
       parent,
@@ -271,30 +273,6 @@ function(businessObject, parent, element, parentElement) {
       element,
       parentElement
     );
-
-    // // Creating decision in decision service
-
-    // // add to new parent (decision service)
-    // const outputDecisions = parent.get('outputDecision');
-    // const encapsulatedDecisions = parent.get('encapsulatedDecision');
-
-    // const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
-    //   href: '#' + businessObject.id
-    // });
-    // const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
-    //   href: '#' + businessObject.id
-    // });
-
-    // outputDecisions.push(outputDecision);
-    // encapsulatedDecisions.push(encapsulatedDecision);
-
-    // outputDecision.$parent = parent;
-    // encapsulatedDecision.$parent = parent;
-    // businessObject.$parent = parent;
-
-    // // add to definitions as drgElement
-    // const drgElement = parent.$parent.get('drgElement');
-    // drgElement.push(businessObject);
   } else if (
     is(businessObject, 'dmn:Decision')
     && parent === null
