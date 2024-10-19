@@ -253,6 +253,16 @@ function(businessObject, parent, element, parentElement) {
     && is(parent, 'dmn:DecisionService')
     && !businessObject.$parent;
 
+  const deletingDecisionFromDecisionService = is(businessObject, 'dmn:Decision')
+    && parent === null
+    && is(businessObject.$parent, 'dmn:DecisionService');
+
+  const movingDecisionFromDecisionServiceToAnotherDecisionService =
+    is(businessObject, 'dmn:Decision')
+    && is(parent, 'dmn:DecisionService')
+    && is(businessObject.$parent, 'dmn:DecisionService')
+    && businessObject.$parent !== parent;
+
   if (decisionFromDefinitionsToDecisionService) {
     this.moveDecisionFromDefinitionsToDecisionService(
       businessObject,
@@ -273,69 +283,20 @@ function(businessObject, parent, element, parentElement) {
       element,
       parentElement
     );
-  } else if (
-    is(businessObject, 'dmn:Decision')
-    && parent === null
-    && is(businessObject.$parent, 'dmn:DecisionService')
-  ) {
-
-    // Deleting decision from decision service
-
-    // remove from old parent (decision service)
-    const outputDecisions = businessObject.$parent.get('outputDecision');
-    const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
-
-    const deleteIndexOutput = outputDecisions.findIndex(decision =>
-      decision.href === '#' + businessObject.id
+  } else if (deletingDecisionFromDecisionService) {
+    this.deleteDecisionFromDecisionService(
+      businessObject,
+      businessObject.$parent,
+      businessObject.$parent.$parent
     );
-    const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
-      decision => decision.href === '#' + businessObject.id);
-
-    outputDecisions.splice(deleteIndexOutput, 1);
-    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
-
-    // remove from definitions as drgElement
-    const drgElement = businessObject.$parent.$parent.get('drgElement');
-    collectionRemove(drgElement, businessObject);
-  } else if (
-    is(businessObject, 'dmn:Decision')
-    && is(parent, 'dmn:DecisionService')
-    && is(businessObject.$parent, 'dmn:DecisionService')
-    && businessObject.$parent !== parent
-  ) {
-
-    // Moving decision from decision service to another decision service
-
-    // remove from old parent (decision service)
-    const outputDecisions = businessObject.$parent.get('outputDecision');
-    const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
-
-    const deleteIndexOutput = outputDecisions.findIndex(decision =>
-      decision.href === '#' + businessObject.id
+  } else if (movingDecisionFromDecisionServiceToAnotherDecisionService) {
+    this.moveDecisionFromDecisionServiceToAnotherDecisionService(
+      businessObject,
+      businessObject.$parent,
+      parent,
+      element,
+      parentElement
     );
-    const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
-      decision => decision.href === '#' + businessObject.id
-    );
-
-    outputDecisions.splice(deleteIndexOutput, 1);
-    encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
-
-    // add to new parent (decision service)
-    const outputDecisionsNew = parent.get('outputDecision');
-    const encapsulatedDecisionsNew = parent.get('encapsulatedDecision');
-    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
-    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
-
-    outputDecisionsNew.push(outputDecision);
-    encapsulatedDecisionsNew.push(encapsulatedDecision);
-
-    outputDecision.$parent = parent;
-    encapsulatedDecision.$parent = parent;
-    businessObject.$parent = parent;
   } else {
 
     // Any other case
@@ -446,6 +407,32 @@ DrdUpdater.prototype.createDecisionInDecisionService =
     // add to definitions as drgElement
     const drgElement = definitions.get('drgElement');
     drgElement.push(decision);
+  };
+
+DrdUpdater.prototype.deleteDecisionFromDecisionService =
+  function(decision, decisionService, definitions) {
+    this._removeOutputDecision(decision, decisionService);
+    this._removeEncapsulatedDecision(decision, decisionService);
+
+    // remove from definitions as drgElement
+    const drgElement = definitions.get('drgElement');
+    collectionRemove(drgElement, decision);
+  };
+
+DrdUpdater.prototype.moveDecisionFromDecisionServiceToAnotherDecisionService =
+  function(decision, oldDecisionService, newDecisionService, element, parentElement) {
+    this._removeOutputDecision(decision, oldDecisionService);
+    this._removeEncapsulatedDecision(decision, oldDecisionService);
+
+    this._createEncapsulatedDecision(decision, newDecisionService);
+    this._eventuallyCreateOutputDecision(
+      decision,
+      newDecisionService,
+      element,
+      parentElement
+    );
+
+    decision.$parent = newDecisionService;
   };
 
 DrdUpdater.prototype._eventuallyCreateOutputDecision = function(
