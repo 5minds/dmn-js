@@ -261,51 +261,40 @@ function(businessObject, parent, element, parentElement) {
       businessObject.$parent,
       parent
     );
-
-    // Moving decision from decision service to definitions
-
-    // remove from old parent (decision service)
-    // const outputDecisions = businessObject.$parent.get('outputDecision');
-    // const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
-    // const deleteIndexOutput = outputDecisions.findIndex(decision =>
-    //   decision.href === '#' + businessObject.id
-    // );
-    // const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
-    //   decision => decision.href === '#' + businessObject.id);
-
-    // deleteIndexOutput >= 0 && outputDecisions.splice(deleteIndexOutput, 1);
-    // deleteIndexEncapsulated >= 0 &&
-    //   encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
-
-    // // add to new parent (definitions)
-    // businessObject.$parent = parent;
   } else if (is(businessObject, 'dmn:Decision')
     && is(parent, 'dmn:DecisionService')
     && !businessObject.$parent) {
+    this.createDecisionInDecisionService(
+      businessObject,
+      parent,
+      parent.$parent,
+      element,
+      parentElement
+    );
 
-    // Creating decision in decision service
+    // // Creating decision in decision service
 
-    // add to new parent (decision service)
-    const outputDecisions = parent.get('outputDecision');
-    const encapsulatedDecisions = parent.get('encapsulatedDecision');
+    // // add to new parent (decision service)
+    // const outputDecisions = parent.get('outputDecision');
+    // const encapsulatedDecisions = parent.get('encapsulatedDecision');
 
-    const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
-    const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
-      href: '#' + businessObject.id
-    });
+    // const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
+    //   href: '#' + businessObject.id
+    // });
+    // const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
+    //   href: '#' + businessObject.id
+    // });
 
-    outputDecisions.push(outputDecision);
-    encapsulatedDecisions.push(encapsulatedDecision);
+    // outputDecisions.push(outputDecision);
+    // encapsulatedDecisions.push(encapsulatedDecision);
 
-    outputDecision.$parent = parent;
-    encapsulatedDecision.$parent = parent;
-    businessObject.$parent = parent;
+    // outputDecision.$parent = parent;
+    // encapsulatedDecision.$parent = parent;
+    // businessObject.$parent = parent;
 
-    // add to definitions as drgElement
-    const drgElement = parent.$parent.get('drgElement');
-    drgElement.push(businessObject);
+    // // add to definitions as drgElement
+    // const drgElement = parent.$parent.get('drgElement');
+    // drgElement.push(businessObject);
   } else if (
     is(businessObject, 'dmn:Decision')
     && parent === null
@@ -447,18 +436,12 @@ DrdUpdater.prototype.updateDiParent = function(di, parentDi) {
 DrdUpdater.prototype.moveDecisionFromDefinitionsToDecisionService =
   function(decision, decisionService, element, parentElement) {
     this._createEncapsulatedDecision(decision, decisionService);
-
-    const isSplit = decisionService.isSplit;
-
-    if (!isSplit) {
-      this._createOutputDecision(decision, decisionService);
-    } else {
-      const isOutputDecision = element.y < parentElement.y + parentElement.height / 2;
-
-      if (isOutputDecision) {
-        this._createOutputDecision(decision, decisionService);
-      }
-    }
+    this._eventuallyCreateOutputDecision(
+      decision,
+      decisionService,
+      element,
+      parentElement
+    );
 
     decision.$parent = decisionService;
   };
@@ -470,7 +453,46 @@ DrdUpdater.prototype.moveDecisionFromDecisionServiceToDefinitions =
     decision.$parent = definitions;
   };
 
-DrdUpdater.prototype._createOutputDecision = function(decision, decisionService) {
+DrdUpdater.prototype.createDecisionInDecisionService =
+  function(decision, decisionService, definitions, element, parentElement) {
+    this._createEncapsulatedDecision(decision, decisionService);
+    this._eventuallyCreateOutputDecision(
+      decision,
+      decisionService,
+      element,
+      parentElement
+    );
+
+    decision.$parent = decisionService;
+
+    // add to definitions as drgElement
+    const drgElement = definitions.get('drgElement');
+    drgElement.push(decision);
+  };
+
+DrdUpdater.prototype._eventuallyCreateOutputDecision = function(
+    decision,
+    decisionService,
+    element,
+    parentElement,
+) {
+  const isSplit = decisionService.isSplit;
+
+  if (!isSplit) {
+    this._createOutputDecision(decision, decisionService);
+  } else {
+    const isOutputDecision = element.y < parentElement.y + parentElement.height / 2;
+
+    if (isOutputDecision) {
+      this._createOutputDecision(decision, decisionService);
+    }
+  }
+};
+
+DrdUpdater.prototype._createOutputDecision = function(
+    decision,
+    decisionService,
+) {
   const outputDecisions = decisionService.get('outputDecision');
   const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
     href: '#' + decision.id
