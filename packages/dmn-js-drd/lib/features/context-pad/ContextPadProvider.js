@@ -150,7 +150,7 @@ ContextPadProvider.prototype.getContextPadEntries = function (element) {
       // TODO create icon
       'decision-service-divide': {
         group: 'split',
-        className: 'dmn-icon-decision-service-divide',
+        className: 'dmn-icon-decision-service-divide-two',
         title: businessObject.isSplit ? translate('Merge decision service') : translate('Split decision service'),
         action: {
           click: divideDecisionServiceHandler()

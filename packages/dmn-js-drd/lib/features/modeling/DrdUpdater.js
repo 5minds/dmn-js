@@ -154,39 +154,6 @@ DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent, el
     this.deleteDecisionFromDecisionService(businessObject, businessObject.$parent, businessObject.$parent.$parent);
   } else if (movingDecisionFromDecisionServiceToAnotherDecisionService) {
     this.moveDecisionFromDecisionServiceToAnotherDecisionService(businessObject, businessObject.$parent, parent, element, parentElement);
-
-    // // Moving decision from decision service to another decision service
-
-    // // remove from old parent (decision service)
-    // const outputDecisions = businessObject.$parent.get('outputDecision');
-    // const encapsulatedDecisions = businessObject.$parent.get('encapsulatedDecision');
-
-    // const deleteIndexOutput = outputDecisions.findIndex(decision =>
-    //   decision.href === '#' + businessObject.id
-    // );
-    // const deleteIndexEncapsulated = encapsulatedDecisions.findIndex(
-    //   decision => decision.href === '#' + businessObject.id
-    // );
-
-    // outputDecisions.splice(deleteIndexOutput, 1);
-    // encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
-
-    // // add to new parent (decision service)
-    // const outputDecisionsNew = parent.get('outputDecision');
-    // const encapsulatedDecisionsNew = parent.get('encapsulatedDecision');
-    // const outputDecision = this._drdFactory.create('dmn:DMNElementReference', {
-    //   href: '#' + businessObject.id
-    // });
-    // const encapsulatedDecision = this._drdFactory.create('dmn:DMNElementReference', {
-    //   href: '#' + businessObject.id
-    // });
-
-    // outputDecisionsNew.push(outputDecision);
-    // encapsulatedDecisionsNew.push(encapsulatedDecision);
-
-    // outputDecision.$parent = parent;
-    // encapsulatedDecision.$parent = parent;
-    // businessObject.$parent = parent;
   } else {
     // Any other case
 

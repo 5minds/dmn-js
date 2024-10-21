@@ -36,6 +36,6 @@
     "tiny-svg": "^3.1.2"
   },
   "devDependencies": {
-    "dmn-font": "^0.6.2"
+    "dmn-font": "https://github.com/5minds/dmn-font.git"
   }
 }

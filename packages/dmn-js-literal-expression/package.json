@@ -26,7 +26,7 @@
     "literal expression"
   ],
   "devDependencies": {
-    "dmn-font": "^0.6.2",
+    "dmn-font": "https://github.com/5minds/dmn-font.git",
     "inferno-test-utils": "~5.6.2"
   },
   "dependencies": {
