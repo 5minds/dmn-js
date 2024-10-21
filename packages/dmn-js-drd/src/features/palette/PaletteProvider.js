@@ -98,7 +98,7 @@ PaletteProvider.prototype.getPaletteEntries = function(element) {
       translate('Create knowledge model')
     ),
     'create.decision-service': createAction(
-      'dmn:DecisionService', 'drd', 'dmn-icon-decision',
+      'dmn:DecisionService', 'drd', 'dmn-icon-decision-service',
       translate('Create decision service')
     )
   });
