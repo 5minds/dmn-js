@@ -60,9 +60,10 @@ DrdRules.prototype.init = function() {
 
   this.addRule('shape.create', function(context) {
     var shape = context.shape,
-        target = context.target;
+        target = context.target,
+        position = context.position;
 
-    return canCreate(shape, target);
+    return canCreate(shape, target, position);
   });
 
   this.addRule('shape.resize', function(context) {
@@ -142,7 +143,7 @@ function canConnect(source, target) {
   return false;
 }
 
-function canCreate(shape, target) {
+function canCreate(shape, target, position) {
   if (isAny(shape, [
     'dmn:BusinessKnowledgeModel',
     'dmn:Decision',
@@ -155,13 +156,24 @@ function canCreate(shape, target) {
   }
 
   if (is(shape, 'dmn:Decision') && is(target, 'dmn:DecisionService')) {
-    return true;
+    if (!target.businessObject.isSplit) {
+      return true;
+    }
+
+    const elementBottomEdge = position.y + (shape.height / 2);
+    const elementUpperEdge = position.y - (shape.height / 2);
+    const dividerLineY = target.y + (target.height / 2);
+
+    const isOnDividerLine = elementUpperEdge < dividerLineY
+      && elementBottomEdge > dividerLineY;
+
+    return !isOnDividerLine;
   }
 
   return false;
 }
 
-function canMove(elements, target) {
+function canMove(elements, target, position) {
   if (!isArray(elements)) {
     elements = [ elements ];
   }
@@ -192,7 +204,19 @@ function canMove(elements, target) {
   if (every(elements, function(element) {
     return is(element, 'dmn:Decision');
   }) && is(target, 'dmn:DecisionService')) {
-    return true;
+    if (!target.businessObject.isSplit) {
+      return true;
+    }
+
+    const isOnDividerLine = elements.some(function(element) {
+      const elementBottomEdge = position.y + (element.height / 2);
+      const elementUpperEdge = position.y - (element.height / 2);
+      const dividerLineY = target.y + (target.height / 2);
+
+      return elementUpperEdge < dividerLineY && elementBottomEdge > dividerLineY;
+    });
+
+    return !isOnDividerLine;
   }
 
   return false;

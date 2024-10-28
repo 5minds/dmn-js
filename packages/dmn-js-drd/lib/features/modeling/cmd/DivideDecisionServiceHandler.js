@@ -12,15 +12,14 @@ DivideDecisionServiceHandler.prototype.preExecute = function (context) {
   const encapsulatedDecisions = bo.get('encapsulatedDecision');
   const isSplitWithEncapsulated = bo.isSplit && outputDecisions.length < encapsulatedDecisions.length;
   if (isSplitWithEncapsulated) {
-    this._addMissingDecisions(outputDecisions, encapsulatedDecisions);
+    this._fillOutputDecisions(outputDecisions, encapsulatedDecisions);
     this._resizeShapeToCurrent(shape);
   } else {
-    console.log('resize');
     this._resizeDecisionService(shape, bo);
   }
   toggleIsSplit(bo);
 };
-DivideDecisionServiceHandler.prototype._addMissingDecisions = function (outputDecisions, encapsulatedDecisions) {
+DivideDecisionServiceHandler.prototype._fillOutputDecisions = function (outputDecisions, encapsulatedDecisions) {
   encapsulatedDecisions.forEach(encapsulatedDecision => {
     if (!outputDecisions.some(outputDecision => outputDecision.href === encapsulatedDecision.href)) {
       outputDecisions.push(encapsulatedDecision);
