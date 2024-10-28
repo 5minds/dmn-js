@@ -7,22 +7,59 @@ DivideDecisionServiceHandler.$inject = [ 'modeling', 'elementFactory' ];
 
 DivideDecisionServiceHandler.prototype.preExecute = function(context) {
   const { shape } = context;
+  const bo = getSemantic(shape);
+  const outputDecisions = bo.get('outputDecision');
+  const encapsulatedDecisions = bo.get('encapsulatedDecision');
+  const isSplitWithEncapsulated = bo.isSplit &&
+    outputDecisions.length < encapsulatedDecisions.length;
 
-  this._resizeDecisionService(shape);
+  if (isSplitWithEncapsulated) {
+    this._fillOutputDecisions(outputDecisions, encapsulatedDecisions);
+    this._resizeShapeToCurrent(shape);
+  } else {
+    this._resizeDecisionService(shape, bo);
+  }
 
-  shape.businessObject.isSplit = !shape.businessObject.isSplit;
+  toggleIsSplit(bo);
 };
 
-DivideDecisionServiceHandler.prototype._resizeDecisionService = function(shape) {
-  let newHeight, newBounds;
+DivideDecisionServiceHandler.prototype._fillOutputDecisions = function(
+    outputDecisions, encapsulatedDecisions
+) {
+  encapsulatedDecisions.forEach((encapsulatedDecision) => {
+    if (!outputDecisions.some(outputDecision =>
+      outputDecision.href === encapsulatedDecision.href
+    )) {
+      outputDecisions.push(encapsulatedDecision);
+    }
+  });
+};
 
-  if (shape.businessObject.isSplit) {
-    newHeight = shape.height / 2;
-    newBounds = { x: shape.x, y: shape.y, width: shape.width, height: newHeight };
-  } else {
-    newHeight = shape.height * 2;
-    newBounds = { x: shape.x, y: shape.y, width: shape.width, height: newHeight };
-  }
+DivideDecisionServiceHandler.prototype._resizeShapeToCurrent = function(shape) {
+  this._modeling.resizeShape(shape, {
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height
+  });
+};
+
+DivideDecisionServiceHandler.prototype._resizeDecisionService = function(shape, bo) {
+  const newHeight = bo.isSplit ? shape.height / 2 : shape.height * 2;
+  const newBounds = {
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: newHeight
+  };
 
   this._modeling.resizeShape(shape, newBounds);
 };
+
+function toggleIsSplit(bo) {
+  bo.isSplit = !bo.isSplit;
+}
+
+function getSemantic(shape) {
+  return shape.businessObject;
+}
