@@ -1,3 +1,4 @@
+import { is } from 'dmn-js-shared/lib/util/ModelUtil';
 import ViewDrdComponent from './components/ViewDrdComponent';
 export default class ViewDrd {
   constructor(components, eventBus, injector, sheet) {
@@ -45,7 +46,9 @@ function getDefinitions(root) {
     return;
   }
   const decision = businessObject.$parent;
-  const definitions = decision.$parent;
+  const parent = decision.$parent;
+  const definitions = is(parent, 'dmn:DecisionService') ? parent.$parent : parent;
+  console.log('view drd definitions', definitions);
   return definitions;
 }
 //# sourceMappingURL=ViewDrd.js.map

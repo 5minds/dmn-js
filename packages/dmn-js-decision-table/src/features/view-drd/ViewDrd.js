@@ -1,3 +1,4 @@
+import { is } from 'dmn-js-shared/lib/util/ModelUtil';
 import ViewDrdComponent from './components/ViewDrdComponent';
 
 export default class ViewDrd {
@@ -59,7 +60,9 @@ function getDefinitions(root) {
 
   const decision = businessObject.$parent;
 
-  const definitions = decision.$parent;
+  const parent = decision.$parent;
+
+  const definitions = is(parent, 'dmn:DecisionService') ? parent.$parent : parent;
 
   return definitions;
 }
