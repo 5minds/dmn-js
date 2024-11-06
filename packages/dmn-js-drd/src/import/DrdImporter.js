@@ -47,6 +47,13 @@ DrdImporter.prototype.add = function(semantic) {
 
   var element, waypoints, source, target, elementDefinition, bounds;
 
+  if (is(semantic, 'dmn:DecisionService')) {
+    const outputDecisions = semantic.get('outputDecision');
+    const encapsulatedDecisions = semantic.get('encapsulatedDecision');
+    const isSplit = outputDecisions.length < encapsulatedDecisions.length;
+    semantic.isSplit = isSplit;
+  }
+
   if (di.$instanceOf('dmndi:DMNShape')) {
     bounds = di.bounds;
 
