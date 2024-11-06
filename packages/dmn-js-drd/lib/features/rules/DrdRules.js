@@ -112,14 +112,12 @@ function canCreate(shape, target, position) {
     const elementBottomEdge = position.y + shape.height / 2;
     const elementUpperEdge = position.y - shape.height / 2;
     const dividerLineY = target.y + target.height / 2;
-    console.log('elementBottomEdge', elementBottomEdge, 'dividerLineY', dividerLineY, 'position.y', position.y);
     const isOnDividerLine = elementUpperEdge < dividerLineY && elementBottomEdge > dividerLineY;
     return !isOnDividerLine;
   }
   return false;
 }
 function canMove(elements, target, position) {
-  console.log('canMove', elements, target, position);
   if (!isArray(elements)) {
     elements = [elements];
   }
@@ -136,7 +134,6 @@ function canMove(elements, target, position) {
 
   // decisions in decisions services
   if (every(elements, function (element) {
-    console.log('element', element, 'target', target);
     return is(element, 'dmn:Decision');
   }) && is(target, 'dmn:DecisionService')) {
     if (!target.businessObject.isSplit) {
@@ -146,7 +143,6 @@ function canMove(elements, target, position) {
       const elementBottomEdge = position.y + element.height / 2;
       const elementUpperEdge = position.y - element.height / 2;
       const dividerLineY = target.y + target.height / 2;
-      console.log('elementBottomEdge', elementBottomEdge, 'dividerLineY', dividerLineY, 'position.y', position.y);
       return elementUpperEdge < dividerLineY && elementBottomEdge > dividerLineY;
     });
     return !isOnDividerLine;

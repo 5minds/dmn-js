@@ -48,7 +48,6 @@ function getDefinitions(root) {
   const decision = businessObject.$parent;
   const parent = decision.$parent;
   const definitions = is(parent, 'dmn:DecisionService') ? parent.$parent : parent;
-  console.log('view drd definitions', definitions);
   return definitions;
 }
 //# sourceMappingURL=ViewDrd.js.map

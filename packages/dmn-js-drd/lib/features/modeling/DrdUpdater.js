@@ -1,17 +1,24 @@
 import { assign } from 'min-dash';
 import inherits from 'inherits-browser';
 import { remove as collectionRemove, add as collectionAdd } from 'diagram-js/lib/util/Collections';
+import { asTRBL } from 'diagram-js/lib/layout/LayoutUtil';
+import { computeChildrenBBox, getMinResizeBounds } from 'diagram-js/lib/features/resize/ResizeUtil';
 import { is, isAny } from 'dmn-js-shared/lib/util/ModelUtil';
 import CommandInterceptor from 'diagram-js/lib/command/CommandInterceptor';
+const DEFAULT_MIN_WIDTH = 10;
+const DEFAULT_CHILD_BOX_PADDING = 20;
 
 /**
  * Update DMN 1.3 information.
  */
-export default function DrdUpdater(connectionDocking, definitionPropertiesView, drdFactory, drdRules, injector) {
+export default function DrdUpdater(connectionDocking, definitionPropertiesView, drdFactory, drdRules, injector, eventBus, modeling, elementRegistry) {
   injector.invoke(CommandInterceptor, this);
   this._definitionPropertiesView = definitionPropertiesView;
   this._drdFactory = drdFactory;
   this._drdRules = drdRules;
+  this._eventBus = eventBus;
+  this._modeling = modeling;
+  this._elementRegistry = elementRegistry;
   var self = this;
   function cropConnection(context) {
     var connection = context.connection,
@@ -50,7 +57,7 @@ export default function DrdUpdater(connectionDocking, definitionPropertiesView, 
     if (!(is(shape, 'dmn:DRGElement') || is(shape, 'dmn:TextAnnotation'))) {
       return;
     }
-    self.updateBounds(shape);
+    self.updateBounds(shape, context);
   }
   this.executed(['shape.create', 'shape.move', 'shape.resize'], updateBounds, true);
   this.reverted(['shape.create', 'shape.move', 'shape.resize'], updateBounds, true);
@@ -100,10 +107,89 @@ export default function DrdUpdater(connectionDocking, definitionPropertiesView, 
   this.reverted('element.updateProperties', function (context) {
     definitionPropertiesView.update();
   }, true);
+  eventBus.on('resize.start', function (event) {
+    const context = event.context,
+      shape = context.shape,
+      businessObject = shape.businessObject;
+    if (is(businessObject, 'dmn:DecisionService')) {
+      const isSplit = businessObject.isSplit;
+      if (!isSplit) {
+        return;
+      }
+      const decisions = businessObject.$parent.get('drgElement').filter(d => is(d, 'dmn:Decision'));
+      const encapsulated = decisions.filter(d => businessObject.get('encapsulatedDecision').some(e => e.href === '#' + d.id));
+      const encapsulatedWithoutOutput = encapsulated.filter(e => !businessObject.get('outputDecision').some(o => o.href === '#' + e.id));
+      const output = decisions.filter(d => businessObject.get('outputDecision').some(o => o.href === '#' + d.id));
+      const isSouth = context.direction.includes('s');
+      const isNorth = context.direction.includes('n');
+      const minBounds = self.computeMinResizeBox(context);
+      if (isSouth) {
+        const highestOutputDecisionY = Math.max(...output.map(d => d.di.bounds.y + d.di.bounds.height));
+        minBounds.height = Math.max(minBounds.height, (highestOutputDecisionY - shape.y) * 2 + DEFAULT_CHILD_BOX_PADDING);
+      }
+      if (isNorth) {
+        const lowestEncapsulatedDecisionY = Math.min(...encapsulatedWithoutOutput.map(d => d.di.bounds.y));
+        minBounds.height = Math.max(minBounds.height, (shape.y + shape.height - lowestEncapsulatedDecisionY) * 2 + DEFAULT_CHILD_BOX_PADDING);
+        minBounds.y = Math.min(minBounds.y, lowestEncapsulatedDecisionY - DEFAULT_CHILD_BOX_PADDING - minBounds.height / 2);
+      }
+      context.resizeConstraints = {
+        min: asTRBL(minBounds)
+      };
+    }
+  });
+  eventBus.on('resize.end', function (event) {
+    const context = event.context,
+      shape = context.shape,
+      delta = context.delta,
+      businessObject = shape.businessObject;
+    if (is(businessObject, 'dmn:DecisionService')) {
+      const isSplit = businessObject.isSplit;
+      if (!isSplit) {
+        return;
+      }
+      const decisions = businessObject.$parent.get('drgElement').filter(d => is(d, 'dmn:Decision'));
+      const encapsulated = decisions.filter(d => businessObject.get('encapsulatedDecision').some(e => e.href === '#' + d.id));
+      const output = decisions.filter(d => businessObject.get('outputDecision').some(o => o.href === '#' + d.id));
+      const encapsulatedWithoutOutput = encapsulated.filter(e => !output.some(o => o.id === e.id));
+      const moveDecision = decision => {
+        const shape = self._elementRegistry.get(decision.id);
+        const currentPosition = {
+          x: shape.x,
+          y: shape.y
+        };
+        const targetY = shape.y + delta.y / 2;
+        const targetPosition = {
+          x: shape.x,
+          y: targetY
+        };
+        self._modeling.moveShape(shape, {
+          x: targetPosition.x - currentPosition.x,
+          y: targetPosition.y - currentPosition.y
+        });
+        const bounds = shape.businessObject.di.bounds;
+        assign(bounds, {
+          x: shape.x,
+          y: targetY,
+          width: shape.width,
+          height: shape.height
+        });
+      };
+      const isSouth = context.direction.includes('s');
+      const isNorth = context.direction.includes('n');
+      const strechtingToTop = isNorth && delta.y < 0;
+      const strechtingToBottom = isSouth && delta.y > 0;
+      if (strechtingToBottom) {
+        encapsulatedWithoutOutput.forEach(moveDecision);
+      }
+      if (strechtingToTop) {
+        output.forEach(moveDecision);
+      }
+    }
+  });
 }
 inherits(DrdUpdater, CommandInterceptor);
-DrdUpdater.$inject = ['connectionDocking', 'definitionPropertiesView', 'drdFactory', 'drdRules', 'injector'];
-DrdUpdater.prototype.updateBounds = function (shape) {
+DrdUpdater.$inject = ['connectionDocking', 'definitionPropertiesView', 'drdFactory', 'drdRules', 'injector', 'eventBus', 'modeling', 'elementRegistry'];
+DrdUpdater.prototype.updateBounds = function (shape, context) {
   var businessObject = shape.businessObject,
     bounds = businessObject.di.bounds;
 
@@ -287,5 +373,22 @@ DrdUpdater.prototype._removeEncapsulatedDecision = function (decision, decisionS
     return;
   }
   encapsulatedDecisions.splice(deleteIndexEncapsulated, 1);
+};
+DrdUpdater.prototype.computeMinResizeBox = function (context) {
+  var shape = context.shape,
+    direction = context.direction,
+    minDimensions,
+    childrenBounds;
+  minDimensions = context.minDimensions || {
+    width: DEFAULT_MIN_WIDTH,
+    height: DEFAULT_MIN_WIDTH
+  };
+
+  // get children bounds
+  childrenBounds = computeChildrenBBox(shape, context.childrenBoxPadding);
+
+  // get correct minimum bounds from given resize direction
+  // basically ensures that the minBounds is max(childrenBounds, minDimensions)
+  return getMinResizeBounds(direction, shape, minDimensions, childrenBounds);
 };
 //# sourceMappingURL=DrdUpdater.js.map
