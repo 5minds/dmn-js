@@ -223,6 +223,9 @@ DrdUpdater.prototype.updateParent = function (element, oldParent) {
 };
 DrdUpdater.prototype.updateSemanticParent = function (businessObject, parent, element, parentElement) {
   if (businessObject.$parent === parent) {
+    if (is(businessObject, 'dmn:Decision') && is(parent, 'dmn:DecisionService')) {
+      this._eventuallyMoveDecisionWithinDecisionService(businessObject, parent, element, parentElement);
+    }
     return;
   }
   const decisionFromDefinitionsToDecisionService = is(businessObject, 'dmn:Decision') && is(parent, 'dmn:DecisionService') && is(businessObject.$parent, 'dmn:Definitions');
@@ -330,6 +333,21 @@ DrdUpdater.prototype.moveDecisionFromDecisionServiceToAnotherDecisionService = f
   this._createEncapsulatedDecision(decision, newDecisionService);
   this._eventuallyCreateOutputDecision(decision, newDecisionService, element, parentElement);
   decision.$parent = newDecisionService;
+};
+DrdUpdater.prototype._eventuallyMoveDecisionWithinDecisionService = function (decision, decisionService, element, parentElement) {
+  const isSplit = decisionService.isSplit;
+  if (!isSplit) {
+    return;
+  }
+  const outputDecisions = decisionService.get('outputDecision');
+  const wasOutputDecision = outputDecisions.some(d => d.href === '#' + decision.id);
+  const isOutputDecision = element.y < parentElement.y + parentElement.height / 2;
+  if (wasOutputDecision && !isOutputDecision) {
+    this._removeOutputDecision(decision, decisionService);
+  }
+  if (!wasOutputDecision && isOutputDecision) {
+    this._createOutputDecision(decision, decisionService);
+  }
 };
 DrdUpdater.prototype._eventuallyCreateOutputDecision = function (decision, decisionService, element, parentElement) {
   const isSplit = decisionService.isSplit;
